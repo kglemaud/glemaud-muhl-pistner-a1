@@ -1,0 +1,471 @@
+---
+title: "Assignment 2 version 2"
+author: "Rowan Muhl"
+date: "2023-10-02"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#### PART ONE ####
+
+
+```{r}
+#| message = FALSE
+library(tidyverse)
+library(gtrendsR)
+library(censusapi)
+library(dplyr)
+```
+
+
+```{r}
+res_hw1 <- gtrends(c("crime", "loans"), 
+               geo = "US-IL", 
+               time = "2020-01-01 2020-12-31", 
+               low_search_volume = TRUE)
+plot(res_hw1)
+```
+#### Question 1 ####
+
+Separate out the data on each keyword
+```{r}
+crime_data <- res_hw1$interest_over_time[which(res_hw1$interest_over_time$keyword == "crime"), ]
+loans_data <- res_hw1$interest_over_time[which(res_hw1$interest_over_time$keyword == "loans"), ]
+```
+
+Calculate the mean for both keywords
+```{r}
+mean_crime <- mean(crime_data$hits)
+mean_crime
+mean_loans <- mean(loans_data$hits)
+mean_loans
+```
+
+Calculate the median for both keywords
+```{r}
+median_crime <- median(crime_data$hits)
+median_crime
+median_loans <- median(loans_data$hits)
+median_loans
+```
+
+Calculate the variance for both keywords
+```{r}
+variance_crime <- var(crime_data$hits)
+variance_crime
+variance_loans <- var(loans_data$hits)
+variance_loans
+```
+
+Make a function that will calculate the mode
+```{r}
+Mode <- function(x) {
+  uniq_x <- unique(x)
+  uniq_x[which.max(tabulate(match(x, uniq_x)))]
+}
+```
+
+Calculate the mode for both keywords
+```{r}
+mode_crime <- Mode(crime_data$hits)
+mode_crime
+mode_loans <- Mode(loans_data$hits)
+mode_loans
+```
+
+#### Question 2 ####
+
+focus on the interest_by_city part
+```{r}
+loans_data2 <- res_hw1$interest_by_city[which(res_hw1$interest_by_city$keyword == "loans"), ]
+
+```
+
+Group the data about the "loans" keyword by city
+Then look at the top cities
+```{r}
+city_search_frequency <- loans_data2 %>%
+  group_by(location) %>%
+  summarize(total_hits = sum(hits, na.rm = TRUE)) %>%
+  arrange(desc(total_hits))
+
+city_search_frequency
+```
+
+#### Question 3 ####
+
+Start with a correlation coefficient
+```{r}
+correlation_coefficient_crimeloans <- cor(crime_data$hits, loans_data$hits, use = "complete.obs")
+correlation_coefficient_crimeloans
+```
+
+Do a significance test, then check if the correlation is statistically significant
+```{r}
+cor_test_result <- cor.test(crime_data$hits, loans_data$hits, method = "pearson")
+cat("p-value for Correlation Test:", cor_test_result$p.value, "\n")
+
+if (cor_test_result$p.value < 0.05) {
+  cat("There is a statistically significant relationship between 'crime' and 'loans'.\n")
+} else {
+  cat("There is no statistically significant relationship between 'crime' and 'loans'.\n")
+}
+```
+
+
+#### Question 4 ####
+Now we do everything again but for covid related keywords.
+I chose the words "mask" and "symptoms"
+
+```{r}
+res_hw2 <- gtrends(c("mask", "symptoms"), 
+               geo = "US-IL", 
+               time = "2020-01-01 2020-12-31", 
+               low_search_volume = TRUE)
+plot(res_hw2)
+```
+
+Separate out the data on each keyword
+```{r}
+mask_data <- res_hw2$interest_over_time[which(res_hw2$interest_over_time$keyword == "mask"), ]
+symptoms_data <- res_hw2$interest_over_time[which(res_hw2$interest_over_time$keyword == "symptoms"), ]
+```
+
+Calculate the mean for both keywords
+```{r}
+mean_mask <- mean(mask_data$hits)
+mean_mask
+mean_symptoms <- mean(symptoms_data$hits)
+mean_symptoms
+```
+
+Calculate the median for both keywords
+```{r}
+median_mask <- median(mask_data$hits)
+median_mask
+median_symptoms <- median(symptoms_data$hits)
+median_symptoms
+```
+
+Calculate the variance for both keywords
+```{r}
+variance_mask <- var(mask_data$hits)
+variance_mask
+variance_symptoms <- var(symptoms_data$hits)
+variance_symptoms
+```
+
+Calculate the mode for both keywords (use the function from earlier)
+```{r}
+mode_mask <- Mode(mask_data$hits)
+mode_mask
+mode_symptoms <- Mode(symptoms_data$hits)
+mode_symptoms
+```
+
+#### Question 5 part 1 ####
+
+focus on the interest_by_city part
+```{r}
+mask_data2 <- res_hw2$interest_by_city[which(res_hw2$interest_by_city$keyword == "mask"), ]
+```
+
+Group the data about the "mask" keyword by city
+Then look at the top cities
+```{r}
+city_search_frequency_mask <- mask_data2 %>%
+  group_by(location) %>%
+  summarize(total_hits = sum(hits, na.rm = TRUE)) %>%
+  arrange(desc(total_hits))
+
+city_search_frequency_mask
+```
+
+
+#### Question 5 part 2 ####
+
+focus on the interest_by_city part
+```{r}
+symptoms_data2 <- res_hw2$interest_by_city[which(res_hw2$interest_by_city$keyword == "symptoms"), ]
+```
+
+Group the data about the "symptoms" keyword by city
+Then look at the top cities
+```{r}
+city_search_frequency_symptoms <- symptoms_data2 %>%
+  group_by(location) %>%
+  summarize(total_hits = sum(hits, na.rm = TRUE)) %>%
+  arrange(desc(total_hits))
+
+city_search_frequency_symptoms
+```
+
+
+
+
+
+
+
+
+#### Question 6 ####
+
+Start with a correlation coefficient
+```{r}
+correlation_coefficient_masksymptoms <- cor(mask_data$hits, symptoms_data$hits, use = "complete.obs")
+correlation_coefficient_masksymptoms
+```
+
+Do a significance test, then check if the correlation is statistically significant
+```{r}
+cor_test_result2 <- cor.test(mask_data$hits, symptoms_data$hits, method = "pearson")
+cat("p-value for Correlation Test:", cor_test_result2$p.value, "\n")
+
+if (cor_test_result2$p.value < 0.05) {
+  cat("There is a statistically significant relationship between 'mask' and 'symptoms'.\n")
+} else {
+  cat("There is no statistically significant relationship between 'mask' and 'symptoms'.\n")
+}
+```
+
+
+#### PART TWO ####
+
+```{r}
+cs_key <- "9298feb975ef6405fa0fc96e9ca3ec7e36bc249d"
+acs_il <- getCensus(name = "acs/acs5",
+                    vintage = 2020, 
+                    vars = c("NAME", 
+                             "B01001_001E", 
+                             "B06002_001E", 
+                             "B19013_001E", 
+                             "B19301_001E"), 
+                    region = "place:*", 
+                    regionin = "state:17",
+                    key = cs_key)
+head(acs_il)
+```
+
+convert missing values to NAs
+```{r}
+acs_il[acs_il == -666666666] <- NA
+```
+
+
+Now, it might be useful to rename the socio-demographic variables (B01001_001E etc.) in our data set and assign more meaningful names.
+```{r}
+
+acs_il <-
+  acs_il %>%
+  rename(pop = B01001_001E, 
+         age = B06002_001E, 
+         hh_income = B19013_001E, 
+         income = B19301_001E)
+
+```
+
+
+Add a new variable "location" to the ACS data that only includes city names.
+
+```{r}
+no_village <- gsub(' village, Illinois', '', acs_il$NAME)
+no_city <- gsub(' city, Illinois', '', no_village)
+acs_with_location <- acs_il %>% mutate(location = no_city)
+acs_with_location %>% head(5)
+
+```
+
+focus on the interest_by_city part
+```{r}
+#loans_data2 <- res_hw1$interest_by_city[which(res_hw1$interest_by_city$keyword == "loans"), ]
+
+```
+
+Group the data about the "loans" keyword by city
+Then look at the top cities
+```{r}
+city_search_frequency_loans <- loans_data2 %>%
+  group_by(location) %>%
+  summarize(total_hits = sum(hits, na.rm = TRUE)) %>%
+  arrange(desc(total_hits))
+
+city_search_frequency_loans
+```
+focus on the interest_by_city part
+```{r}
+crime_data2 <- res_hw1$interest_by_city[which(res_hw1$interest_by_city$keyword == "crime"), ]
+
+```
+
+Group the data about the "crime" keyword by city
+Then look at the top cities
+```{r}
+city_search_frequency_crime <- crime_data2 %>%
+  group_by(location) %>%
+  summarize(total_hits = sum(hits, na.rm = TRUE)) %>%
+  arrange(desc(total_hits))
+
+city_search_frequency_crime
+```
+
+merge the loans and crime data
+IN THIS X IS LOANS AND Y IS CRIME
+```{r}
+merged_data_crimeloans <- inner_join(city_search_frequency_loans, city_search_frequency_crime, by = "location")
+head(merged_data_crimeloans)
+```
+
+Now merge it with the ACS Data
+```{r}
+merged_data_crimeloans_ACS <- inner_join(merged_data_crimeloans, acs_with_location, by = "location")
+head(merged_data_crimeloans_ACS)
+```
+
+Compute the mean of the search popularity for both keywords for cities that have an above average median household income and for those that have an below average median household income. When building your pipe, start with creating the grouping variable and then proceed with the remaining tasks. What conclusions might you draw from this?
+
+Calculate the average household income
+```{r}
+library(dplyr)
+average_income_crimeloans_ACS <- mean(merged_data_crimeloans_ACS$hh_income, na.rm = TRUE)
+average_income_crimeloans_ACS
+```
+
+create grouping variable
+```{r}
+merged_data_crimeloans_ACS <- merged_data_crimeloans_ACS %>%
+  mutate(income_group = ifelse(hh_income > average_income_crimeloans_ACS, "Above Average", "Below Average"))
+head(merged_data_crimeloans_ACS)
+merged_data_crimeloans_ACS
+```
+
+group by income group
+```{r}
+grouped_data_crimeloans_ACS <- merged_data_crimeloans_ACS %>%
+  group_by(income_group)
+```
+
+calculate the mean for both groups
+```{r}
+result_crimeloans_ACS <- grouped_data_crimeloans_ACS %>%
+  summarize(
+    mean_popularity_crime = mean(total_hits.y, na.rm = TRUE), #crime
+    mean_popularity_loans = mean(total_hits.x, na.rm = TRUE) #loans
+  )
+print(result_crimeloans_ACS)
+```
+
+Is there a relationship between the median household income and the search popularity of the Google trends terms? Describe the relationship and use a scatterplot with qplot().
+
+```{r}
+library(ggplot2)
+scatterplot_crimeloans_ACS <- ggplot(merged_data_crimeloans_ACS, aes(x = hh_income)) +
+  geom_point(aes(y = total_hits.y, color = income_group), size = 3, alpha = 0.7) +
+  geom_point(aes(y = total_hits.x, color = income_group), size = 3, shape = 2, alpha = 0.7) +
+  labs(
+    x = "Median Household Income",
+    y = "Search Popularity",
+    color = "Income Group",
+    shape = "Income Group"
+  ) +
+  scale_shape_manual(values = c(19, 2)) +
+  ggtitle("Relationship Between Median Household Income and Search Popularity") +
+  theme_minimal()
+print(scatterplot_crimeloans_ACS)
+```
+circles are crime, triangles are loans
+
+
+Is there a relationship? look at the correlation
+```{r}
+correlation_crime_income <- cor(merged_data_crimeloans_ACS$total_hits.y, merged_data_crimeloans_ACS$hh_income, use = "complete.obs")
+cat("Correlation between 'crime' and median household income:", correlation_crime_income, "\n")
+
+correlation_loans_income <- cor(merged_data_crimeloans_ACS$total_hits.x, merged_data_crimeloans_ACS$hh_income, use = "complete.obs")
+cat("Correlation between 'loans' and median household income:", correlation_loans_income, "\n")
+```
+
+
+#### last part ####
+
+merge the mask and symptoms data
+IN THIS X IS MASK AND Y IS SYMPTOMS
+```{r}
+city_search_frequency_mask # this is x
+city_search_frequency_symptoms #this is y
+merged_data_masksymptoms <- inner_join(city_search_frequency_mask, city_search_frequency_symptoms, by = "location")
+merged_data_masksymptoms
+```
+
+Now merge it with the ACS Data
+```{r}
+merged_data_masksymptoms_ACS <- inner_join(merged_data_masksymptoms, acs_with_location, by = "location")
+head(merged_data_masksymptoms_ACS)
+```
+
+Compute the mean of the search popularity for both keywords for cities that have an above average median household income and for those that have an below average median household income. When building your pipe, start with creating the grouping variable and then proceed with the remaining tasks. What conclusions might you draw from this?
+
+Calculate the average household income
+```{r}
+library(dplyr)
+average_income_masksymptoms_ACS <- mean(merged_data_masksymptoms_ACS$hh_income, na.rm = TRUE)
+average_income_masksymptoms_ACS
+```
+
+create grouping variable
+```{r}
+merged_data_masksymptoms_ACS <- merged_data_masksymptoms_ACS %>%
+  mutate(income_group = ifelse(hh_income > average_income_masksymptoms_ACS, "Above Average", "Below Average"))
+head(merged_data_masksymptoms_ACS)
+merged_data_masksymptoms_ACS
+```
+
+group by income group
+```{r}
+grouped_data_masksymptoms_ACS <- merged_data_masksymptoms_ACS %>%
+  group_by(income_group)
+```
+
+calculate the mean for both groups
+```{r}
+result_masksymptoms_ACS <- grouped_data_masksymptoms_ACS %>%
+  summarize(
+    mean_popularity_symptoms = mean(total_hits.y, na.rm = TRUE), #symptoms
+    mean_popularity_mask = mean(total_hits.x, na.rm = TRUE) #mask
+  )
+print(result_masksymptoms_ACS)
+```
+
+Is there a relationship between the median household income and the search popularity of the Google trends terms? Describe the relationship and use a scatterplot with qplot().
+
+```{r}
+library(ggplot2)
+scatterplot_masksymptoms_ACS <- ggplot(merged_data_masksymptoms_ACS, aes(x = hh_income)) +
+  geom_point(aes(y = total_hits.y, color = income_group), size = 3, alpha = 0.7) +
+  geom_point(aes(y = total_hits.x, color = income_group), size = 3, shape = 2, alpha = 0.7) +
+  labs(
+    x = "Median Household Income",
+    y = "Search Popularity",
+    color = "Income Group",
+    shape = "Income Group"
+  ) +
+  scale_shape_manual(values = c(19, 2)) +
+  ggtitle("Relationship Between Median Household Income and Search Popularity") +
+  theme_minimal()
+print(scatterplot_masksymptoms_ACS)
+```
+circles are symptoms, triangles are mask
+
+Is there a relationship? look at the correlation
+```{r}
+correlation_symptoms_income <- cor(merged_data_masksymptoms_ACS$total_hits.y, merged_data_masksymptoms_ACS$hh_income, use = "complete.obs")
+cat("Correlation between 'symptoms' and median household income:", correlation_symptoms_income, "\n")
+
+correlation_mask_income <- cor(merged_data_masksymptoms_ACS$total_hits.x, merged_data_masksymptoms_ACS$hh_income, use = "complete.obs")
+cat("Correlation between 'mask' and median household income:", correlation_mask_income, "\n")
+```
+
+
