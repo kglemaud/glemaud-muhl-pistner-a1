@@ -11,6 +11,10 @@ knitr::opts_chunk$set(echo = TRUE)
 
 You may work in pairs or individually for this assignment. Make sure you join a group in Canvas if you are working in pairs. Turn in this assignment as an HTML or PDF file to ELMS. Make sure to include the R Markdown or Quarto file that was used to generate it. Include the GitHub link for the repository containing these files.
 
+link to Github page:
+https://github.com/kglemaud/glemaud-muhl-pistner-a1
+
+
 ```{r}
 library(xml2)
 library(rvest)
@@ -160,16 +164,14 @@ To prepare the loop, we also want to copy our pop table and rename it as pops. I
 ```{r}
 
 #append_population_data <- function(community_area_name, table) {
-  # Extract the population data
-  # You need to specify the columns where Year and Population data are in your tables
-#  year_column <- 1  # Change this to the correct column index
-#  population_column <- 2  # Change this to the correct column index
+
+#  year_column <- 1  
+#  population_column <- 2  
   
-  # Rename the population data column with the community area name
 #  col_name <- gsub("_", " ", community_area_name)
-#  col_name <- gsub(",", "", col_name) # Remove commas
- # col_name <- gsub(" ", "_", col_name) # Replace spaces with underscores
-#  col_name <- gsub("[^A-Za-z0-9_]", "", col_name)  # Remove non-alphanumeric characters
+#  col_name <- gsub(",", "", col_name) 
+ # col_name <- gsub(" ", "_", col_name) 
+#  col_name <- gsub("[^A-Za-z0-9_]", "", col_name)  
  # names(table)[population_column] <- col_name
   
   # Merge the population data into the "pops" table
@@ -179,7 +181,6 @@ To prepare the loop, we also want to copy our pop table and rename it as pops. I
 ```
 
 ```{r}
-# Merge the population data into the "pops" table with suffixes
 #pops1 <- merge(pops1, cleaned_table_2, by.x = "Census", by.y = "Census", all = TRUE, suffixes = c("_x", "_2"))
 #pops1 <- merge(pops1, cleaned_table_3, by.x = "Census", by.y = "Census", all = TRUE, suffixes = c("_x", "_3"))
 #pops1 <- merge(pops1, cleaned_table_4, by.x = "Census", by.y = "Census", all = TRUE, suffixes = c("_x", "_4"))
@@ -198,41 +199,32 @@ wikipedia_urls
 
 
 ```{r}
-# Assuming you have the cleaned historical population table 'pops' and the 'east_grand_boulevard_cleaned' vector
 
 pops2 <- cleaned_table
-# Function to append population data to the 'pops' table
 append_population_data <- function(community_area_name, pops2) {
-  # Construct the Wikipedia URL for the community area
+
   wikipedia_url <- paste0("https://en.wikipedia.org/wiki/", community_area_name)
-  
-  # Read the population table from the Wikipedia page
+
   webpage <- read_html(wikipedia_url)
   tables_again <- webpage %>% html_table(fill = TRUE)
-  
-  # Assuming the table you want is the first one (change this as needed)
+
   population_data <- tables_again[[2]]
-  
-  # Perform necessary data cleaning and merging
+
   col_name <- gsub("_", " ", community_area_name)
   col_name <- gsub(",", "", col_name)
   col_name <- gsub(" ", "_", col_name)
   names(population_data)[2] <- col_name
   
-  
-  # Merge the population data with the 'pops' table using 'Census' as the key
+
   pops2 <<- merge(pops2, population_data, by.x = "Census", by.y = "Census", all.x = TRUE)
   
   return(pops2)
 }
-# Rename the "Census" column in the population data frame to match 'pops'
 
-# Loop through your community areas and append population data
 for (area in east_grand_boulevard_cleaned) {
   append_population_data(area, pops2)
 }
 
-# Print the updated 'pops' table
 print(pops2)
 view(pops2)
 ```
@@ -302,27 +294,18 @@ Create tokens using unnest_tokens. Make sure the data is in one-token-per-row fo
 library(tidytext)
 library(dplyr)
 
-# Ensure the 'Description' column is of character type
 community_area_data <- community_area_data %>%
   mutate(Description = as.character(Description))
 
-# Tokenize the text data
 tokens <- community_area_data %>%
   unnest_tokens(word, Description)
 
-
-# Remove stop words
 tokens <- tokens %>%
   anti_join(stop_words)
 
-# Remove punctuation and numbers
 tokens <- tokens %>%
   filter(!grepl("^[[:punct:][:digit:]]+$", word))
 
-# Perform additional text cleaning and analysis as needed
-# For example, you can perform stemming, lemmatization, or other text analysis tasks.
-
-# Now you have a tidy data frame 'tokens' with cleaned and tokenized text data
 View(tokens)
 ```
 
@@ -331,11 +314,9 @@ What are the most common words used overall?
 library(tidytext)
 library(dplyr)
 
-# Tokenize the text data and create a word frequency table
 word_freq <- tokens %>%
   count(word, sort = TRUE)
 
-# Display the most common words
 head(word_freq, 20)  
 
 ```
@@ -344,16 +325,14 @@ Plot the most common words within each location.
 ```{r}
 library(ggplot2)
 
-# Group the tokenized data by 'Location' and count word frequencies
 word_freq_by_location <- tokens %>%
   group_by(Location, word) %>%
   summarize(count = n()) %>%
   arrange(desc(count))
 
-# Create separate word frequency plots for each location
 location_plots <- word_freq_by_location %>%
   group_by(Location) %>%
-  top_n(10, count) %>%  # Select the top 10 words for each location
+  top_n(10, count) %>%  # top 10 per location
   ggplot(aes(x = reorder(word, -count), y = count, fill = Location)) +
   geom_col() +
   labs(
@@ -365,7 +344,6 @@ location_plots <- word_freq_by_location %>%
   facet_wrap(~Location, scales = "free_y") +
   scale_fill_brewer(palette = "Set1")
 
-# Display the word frequency plots
 print(location_plots)
 
 ```
