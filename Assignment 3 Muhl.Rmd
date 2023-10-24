@@ -1,0 +1,242 @@
+---
+title: "Assignment 3 Wed"
+author: "Rowan Muhl"
+date: "2023-10-22"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+You may work in pairs or individually for this assignment. Make sure you join a group in Canvas if you are working in pairs. Turn in this assignment as an HTML or PDF file to ELMS. Make sure to include the R Markdown or Quarto file that was used to generate it. Include the GitHub link for the repository containing these files.
+
+```{r}
+library(xml2)
+library(rvest)
+library(tidyverse)
+```
+
+Web Scraping
+
+In this assignment, your task is to scrape some information from Wikipedia. We start with the following page about Grand Boulevard, a Chicago Community Area.
+
+https://en.wikipedia.org/wiki/Grand_Boulevard,_Chicago
+
+The ultimate goal is to gather the table "Historical population" and convert it to a data.frame.
+
+As a first step, read in the html page as an R object. Extract the tables from this object (using the rvest package) and save the result as a new object. Follow the instructions if there is an error.
+
+```{r}
+url1 <- "https://en.wikipedia.org/wiki/Grand_Boulevard,_Chicago"
+
+webpage1 <- read_html(url1)
+
+tables1 <- webpage1 %>% html_table(fill = TRUE)
+
+first_table <- tables1[[1]]
+
+first_table
+
+str(tables1)
+
+historical_population_table <- tables1[[2]]
+
+print(historical_population_table)
+
+cleaned_historical_population_table <- historical_population_table %>%
+  slice(1:10)
+
+print(cleaned_historical_population_table)
+
+cleaned_table <- cleaned_historical_population_table %>%
+  select(-3)
+
+print(cleaned_table)
+```
+
+Use str() on this new object -- it should be a list. Try to find the position of the "Historical population" in this list since we need it in the next step.
+
+Extract the "Historical population" table from the list and save it as another object. You can use subsetting via [[…]] to extract pieces from a list. Print the result.
+
+You will see that the table needs some additional formatting. We only want rows and columns with actual values (I called the table object pop).
+
+```{r}
+#pop <-
+# pop <- pop[2:10, -3]
+# pop
+```
+
+Expanding to More Pages
+
+That's it for this page. However, we may want to repeat this process for other community areas. The Wikipedia page https://en.wikipedia.org/wiki/Grand_Boulevard,_Chicago has a section on "Places adjacent to Grand Boulevard, Chicago" at the bottom. Can you find the corresponding table in the list of tables that you created earlier? Extract this table as a new object.
+
+```{r}
+adjacent_places_table <- tables1[[4]]
+print(adjacent_places_table)
+
+
+```
+
+Then, grab the community areas east of Grand Boulevard and save them as a character vector. Print the result.
+
+```{r}
+east_grand_boulevard <- as.character(adjacent_places_table[[3]])
+print(east_grand_boulevard)
+```
+We want to use this list to create a loop that extracts the population tables from the Wikipedia pages of these places. To make this work and build valid urls, we need to replace empty spaces in the character vector with underscores. This can be done with gsub(), or by hand. The resulting vector should look like this: "Oakland,_Chicago" "Kenwood,_Chicago" "Hyde_Park,_Chicago"
+
+```{r}
+east_grand_boulevard_cleaned <- gsub(" ", "_", east_grand_boulevard)
+cat(east_grand_boulevard_cleaned, sep = ", ")
+```
+```{r}
+pops1 <- cleaned_table
+east_grand_boulevard_cleaned <- east_grand_boulevard_cleaned[east_grand_boulevard_cleaned != ""]
+
+wikipedia_base_url <- "https://en.wikipedia.org/wiki/"
+wikipedia_urls <- paste0(wikipedia_base_url, east_grand_boulevard_cleaned)
+
+cat(wikipedia_urls, sep = "\n")
+```
+
+
+To prepare the loop, we also want to copy our pop table and rename it as pops. In the loop, we append this table by adding columns from the other community areas.
+
+```{r}
+url2 <- "https://en.wikipedia.org/wiki/Oakland,_Chicago"
+url3 <- "https://en.wikipedia.org/wiki/Kenwood,_Chicago"
+url4 <- "https://en.wikipedia.org/wiki/Hyde_Park,_Chicago"
+
+webpage2 <- read_html(url2)
+webpage3 <- read_html(url3)
+webpage4 <- read_html(url4)
+
+tables2 <- webpage2 %>% html_table(fill = TRUE)
+tables3 <- webpage3 %>% html_table(fill = TRUE)
+tables4 <- webpage4 %>% html_table(fill = TRUE)
+
+second_table <- tables2[[1]]
+third_table <- tables3[[1]]
+fourth_table <- tables4[[1]]
+
+first_table
+second_table
+third_table
+fourth_table
+
+str(tables1)
+# historical pop item 2
+str(tables2)
+# historical pop item 2
+str(tables3)
+# historical pop item 2
+str(tables4)
+# historical pop item 2
+
+historical_population_table_2 <- tables2[[2]]
+historical_population_table_3 <- tables3[[2]]
+historical_population_table_4 <- tables4[[2]]
+
+
+cleaned_historical_population_table_2 <- historical_population_table_2 %>%
+  slice(1:10)
+cleaned_historical_population_table_3 <- historical_population_table_3 %>%
+  slice(1:10)
+cleaned_historical_population_table_4 <- historical_population_table_4 %>%
+  slice(1:10)
+
+
+cleaned_table_2 <- cleaned_historical_population_table_2 %>%
+  select(-3)
+cleaned_table_3 <- cleaned_historical_population_table_3 %>%
+  select(-3)
+cleaned_table_4 <- cleaned_historical_population_table_4 %>%
+  select(-3)
+
+print(cleaned_table_2)
+print(cleaned_table_3)
+print(cleaned_table_4)
+```
+```{r}
+pops <- cleaned_historical_population_table
+append_population_data <- function(community_area_name, table) {
+  # Extract the population data
+  # You need to specify the columns where Year and Population data are in your tables
+  year_column <- 1  # Change this to the correct column index
+  population_column <- 2  # Change this to the correct column index
+  
+  # Rename the population data column with the community area name
+  col_name <- gsub("_", " ", community_area_name)
+  col_name <- gsub(",", "", col_name) # Remove commas
+  col_name <- gsub(" ", "_", col_name) # Replace spaces with underscores
+  col_name <- gsub("[^A-Za-z0-9_]", "", col_name)  # Remove non-alphanumeric characters
+  names(table)[population_column] <- col_name
+  
+  # Merge the population data into the "pops" table
+  pops <<- merge(pops, table, by.x = "Census", by.y = "Census", all = TRUE)
+}
+
+```
+
+```{r}
+# Merge the population data into the "pops" table with suffixes
+pops <- merge(pops, cleaned_table_2, by.x = "Census", by.y = "Census", all = TRUE, suffixes = c("_x", "_2"))
+pops <- merge(pops, cleaned_table_3, by.x = "Census", by.y = "Census", all = TRUE, suffixes = c("_x", "_3"))
+pops <- merge(pops, cleaned_table_4, by.x = "Census", by.y = "Census", all = TRUE, suffixes = c("_x", "_4"))
+
+append_population_data("Oakland_Chicago", cleaned_table_2)
+append_population_data("Kenwood_Chicago", cleaned_table_3)
+append_population_data("Hyde_Park_Chicago", cleaned_table_4)
+view(pops)
+```
+```{r}
+# Assuming you have the cleaned historical population table 'pops' and the 'east_grand_boulevard_cleaned' vector
+
+# Initialize the 'pops' table if you haven't already
+pops <- cleaned_historical_population_table
+
+# Function to append population data to the 'pops' table
+append_population_data <- function(community_area_name) {
+  # Construct the Wikipedia URL for the community area
+  wikipedia_url <- paste0("https://en.wikipedia.org/wiki/", community_area_name)
+  
+  # Read the population table from the Wikipedia page
+  webpage <- read_html(wikipedia_url)
+  tables <- webpage %>% html_table(fill = TRUE)
+  
+  # Assuming the table you want is the first one (change this as needed)
+  population_data <- tables[[1]]
+  
+  # Perform necessary data cleaning and merging
+  col_name <- gsub("_", " ", community_area_name)
+  col_name <- gsub(",", "", col_name)
+  col_name <- gsub(" ", "_", col_name)
+  names(population_data)[2] <- col_name
+  
+  # Merge the population data with the 'pops' table using 'Census' as the key
+  pops <<- merge(pops, population_data, by.x = "Census", by.y = "Census", all.x = TRUE)
+}
+# Rename the "Census" column in the population data frame to match 'pops'
+col_names(population_data)[col_names(population_data) == "Census"] <- "Census"
+
+# Loop through your community areas and append population data
+for (area in east_grand_boulevard_cleaned) {
+  append_population_data(area)
+}
+
+# Print the updated 'pops' table
+print(pops)
+
+```
+# this isnt fucking working
+
+
+
+
+
+
+
+
+
+
