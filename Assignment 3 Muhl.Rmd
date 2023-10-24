@@ -100,113 +100,118 @@ wikipedia_urls <- paste0(wikipedia_base_url, east_grand_boulevard_cleaned)
 cat(wikipedia_urls, sep = "\n")
 ```
 
-
 To prepare the loop, we also want to copy our pop table and rename it as pops. In the loop, we append this table by adding columns from the other community areas.
 
 ```{r}
-url2 <- "https://en.wikipedia.org/wiki/Oakland,_Chicago"
-url3 <- "https://en.wikipedia.org/wiki/Kenwood,_Chicago"
-url4 <- "https://en.wikipedia.org/wiki/Hyde_Park,_Chicago"
+#url2 <- "https://en.wikipedia.org/wiki/Oakland,_Chicago"
+#url3 <- "https://en.wikipedia.org/wiki/Kenwood,_Chicago"
+#url4 <- "https://en.wikipedia.org/wiki/Hyde_Park,_Chicago"
 
-webpage2 <- read_html(url2)
-webpage3 <- read_html(url3)
-webpage4 <- read_html(url4)
+#webpage2 <- read_html(url2)
+#webpage3 <- read_html(url3)
+#webpage4 <- read_html(url4)
 
-tables2 <- webpage2 %>% html_table(fill = TRUE)
-tables3 <- webpage3 %>% html_table(fill = TRUE)
-tables4 <- webpage4 %>% html_table(fill = TRUE)
+#tables2 <- webpage2 %>% html_table(fill = TRUE)
+#tables3 <- webpage3 %>% html_table(fill = TRUE)
+#tables4 <- webpage4 %>% html_table(fill = TRUE)
 
-second_table <- tables2[[1]]
-third_table <- tables3[[1]]
-fourth_table <- tables4[[1]]
+#second_table <- tables2[[1]]
+#third_table <- tables3[[1]]
+#fourth_table <- tables4[[1]]
 
-first_table
-second_table
-third_table
-fourth_table
+#first_table
+#second_table
+#third_table
+#fourth_table
 
-str(tables1)
+#str(tables1)
 # historical pop item 2
-str(tables2)
+#str(tables2)
 # historical pop item 2
-str(tables3)
+#str(tables3)
 # historical pop item 2
-str(tables4)
+#str(tables4)
 # historical pop item 2
 
-historical_population_table_2 <- tables2[[2]]
-historical_population_table_3 <- tables3[[2]]
-historical_population_table_4 <- tables4[[2]]
+#historical_population_table_2 <- tables2[[2]]
+#historical_population_table_3 <- tables3[[2]]
+#historical_population_table_4 <- tables4[[2]]
 
 
-cleaned_historical_population_table_2 <- historical_population_table_2 %>%
-  slice(1:10)
-cleaned_historical_population_table_3 <- historical_population_table_3 %>%
-  slice(1:10)
-cleaned_historical_population_table_4 <- historical_population_table_4 %>%
-  slice(1:10)
+#cleaned_historical_population_table_2 <- historical_population_table_2 %>%
+#  slice(1:10)
+#cleaned_historical_population_table_3 <- historical_population_table_3 %>%
+#  slice(1:10)
+#cleaned_historical_population_table_4 <- historical_population_table_4 %>%
+#  slice(1:10)
 
 
-cleaned_table_2 <- cleaned_historical_population_table_2 %>%
-  select(-3)
-cleaned_table_3 <- cleaned_historical_population_table_3 %>%
-  select(-3)
-cleaned_table_4 <- cleaned_historical_population_table_4 %>%
-  select(-3)
+#cleaned_table_2 <- cleaned_historical_population_table_2 %>%
+#  select(-3)
+#cleaned_table_3 <- cleaned_historical_population_table_3 %>%
+#  select(-3)
+#cleaned_table_4 <- cleaned_historical_population_table_4 %>%
+#  select(-3)
 
-print(cleaned_table_2)
-print(cleaned_table_3)
-print(cleaned_table_4)
+#print(cleaned_table_2)
+#print(cleaned_table_3)
+#print(cleaned_table_4)
 ```
 ```{r}
-pops <- cleaned_historical_population_table
-append_population_data <- function(community_area_name, table) {
+
+#append_population_data <- function(community_area_name, table) {
   # Extract the population data
   # You need to specify the columns where Year and Population data are in your tables
-  year_column <- 1  # Change this to the correct column index
-  population_column <- 2  # Change this to the correct column index
+#  year_column <- 1  # Change this to the correct column index
+#  population_column <- 2  # Change this to the correct column index
   
   # Rename the population data column with the community area name
-  col_name <- gsub("_", " ", community_area_name)
-  col_name <- gsub(",", "", col_name) # Remove commas
-  col_name <- gsub(" ", "_", col_name) # Replace spaces with underscores
-  col_name <- gsub("[^A-Za-z0-9_]", "", col_name)  # Remove non-alphanumeric characters
-  names(table)[population_column] <- col_name
+#  col_name <- gsub("_", " ", community_area_name)
+#  col_name <- gsub(",", "", col_name) # Remove commas
+ # col_name <- gsub(" ", "_", col_name) # Replace spaces with underscores
+#  col_name <- gsub("[^A-Za-z0-9_]", "", col_name)  # Remove non-alphanumeric characters
+ # names(table)[population_column] <- col_name
   
   # Merge the population data into the "pops" table
-  pops <<- merge(pops, table, by.x = "Census", by.y = "Census", all = TRUE)
-}
+#  pops1 <<- merge(pops1, table, by.x = "Census", by.y = "Census", all = TRUE)
+#}
 
 ```
 
 ```{r}
 # Merge the population data into the "pops" table with suffixes
-pops <- merge(pops, cleaned_table_2, by.x = "Census", by.y = "Census", all = TRUE, suffixes = c("_x", "_2"))
-pops <- merge(pops, cleaned_table_3, by.x = "Census", by.y = "Census", all = TRUE, suffixes = c("_x", "_3"))
-pops <- merge(pops, cleaned_table_4, by.x = "Census", by.y = "Census", all = TRUE, suffixes = c("_x", "_4"))
+#pops1 <- merge(pops1, cleaned_table_2, by.x = "Census", by.y = "Census", all = TRUE, suffixes = c("_x", "_2"))
+#pops1 <- merge(pops1, cleaned_table_3, by.x = "Census", by.y = "Census", all = TRUE, suffixes = c("_x", "_3"))
+#pops1 <- merge(pops1, cleaned_table_4, by.x = "Census", by.y = "Census", all = TRUE, suffixes = c("_x", "_4"))
 
-append_population_data("Oakland_Chicago", cleaned_table_2)
-append_population_data("Kenwood_Chicago", cleaned_table_3)
-append_population_data("Hyde_Park_Chicago", cleaned_table_4)
-view(pops)
+#append_population_data("Oakland_Chicago", cleaned_table_2)
+#append_population_data("Kenwood_Chicago", cleaned_table_3)
+#append_population_data("Hyde_Park_Chicago", cleaned_table_4)
+#view(pops1)
 ```
+
+```{r}
+#pops2 <- cleaned_table
+
+wikipedia_urls
+```
+
+
 ```{r}
 # Assuming you have the cleaned historical population table 'pops' and the 'east_grand_boulevard_cleaned' vector
 
-# Initialize the 'pops' table if you haven't already
-pops <- cleaned_historical_population_table
-
+pops2 <- cleaned_table
 # Function to append population data to the 'pops' table
-append_population_data <- function(community_area_name) {
+append_population_data <- function(community_area_name, pops2) {
   # Construct the Wikipedia URL for the community area
   wikipedia_url <- paste0("https://en.wikipedia.org/wiki/", community_area_name)
   
   # Read the population table from the Wikipedia page
   webpage <- read_html(wikipedia_url)
-  tables <- webpage %>% html_table(fill = TRUE)
+  tables_again <- webpage %>% html_table(fill = TRUE)
   
   # Assuming the table you want is the first one (change this as needed)
-  population_data <- tables[[1]]
+  population_data <- tables_again[[2]]
   
   # Perform necessary data cleaning and merging
   col_name <- gsub("_", " ", community_area_name)
@@ -214,26 +219,158 @@ append_population_data <- function(community_area_name) {
   col_name <- gsub(" ", "_", col_name)
   names(population_data)[2] <- col_name
   
+  
   # Merge the population data with the 'pops' table using 'Census' as the key
-  pops <<- merge(pops, population_data, by.x = "Census", by.y = "Census", all.x = TRUE)
+  pops2 <<- merge(pops2, population_data, by.x = "Census", by.y = "Census", all.x = TRUE)
+  
+  return(pops2)
 }
 # Rename the "Census" column in the population data frame to match 'pops'
-col_names(population_data)[col_names(population_data) == "Census"] <- "Census"
 
 # Loop through your community areas and append population data
 for (area in east_grand_boulevard_cleaned) {
-  append_population_data(area)
+  append_population_data(area, pops2)
 }
 
 # Print the updated 'pops' table
-print(pops)
+print(pops2)
+view(pops2)
+```
+```{r}
+#now clean the table
+#delete extra columns
+pops3 <- pops2[,-c(5,8,11)]
+view(pops3)
+
+# rename columns
+colnames(pops3) <- c("Census", "Grand_Boulevard_Population", "Grand_Boulevard_%Change", "Oakland_Population", "Oakland_%Change", "Kenwood_Population", "Kenwood_%Change", "Hyde_Park_Population", "Hyde_Park_%Change")
+view(pops3)
+```
+
+Suppose we wanted to take the actual text from the Wikipedia pages instead of just the information in the table. Our goal in this section is to extract the text from the body of the pages, then do some basic text cleaning and analysis.
+First, scrape just the text without any of the information in the margins or headers. For example, for "Grand Boulevard", the text should start with, "Grand Boulevard on the South Side of Chicago, Illinois, is one of the …". Make sure all of the text is in one block by using something like the code below (I called my object description).
+```{r}
+install.packages("tm")  # for text mining
+library(rvest)
+library(tm)
+```
+```{r}
+urls_text <- c("https://en.wikipedia.org/wiki/Grand_Boulevard,_Chicago", "https://en.wikipedia.org/wiki/Oakland,_Chicago", "https://en.wikipedia.org/wiki/Kenwood,_Chicago", "https://en.wikipedia.org/wiki/Hyde_Park,_Chicago"
+)
+text_content_list <- list()
+
+for (url in urls_text) {
+  webpage_text <- read_html(url)
+  content_selector <- ".mw-parser-output p"
+  content_nodes <- html_nodes(webpage_text, content_selector)
+  description <- html_text(content_nodes, trim = TRUE)
+  description <- paste(description, collapse = "\n")
+  text_content_list <- append(text_content_list, list(description))
+}
+
+for (i in 1:length(text_content_list)) {
+  cat("Text content for URL", i, ":\n")
+  cat(text_content_list[[i]], "\n\n")
+}
+```
+
+```{r}
+library(rvest)
+library(tibble)
+
+community_area_data <- tibble()
+
+for (url in urls_text) {
+  webpage_comm <- read_html(url)
+  community_area_name <- gsub("_", " ", gsub(".+/", "", url))
+  content_selector <- ".mw-parser-output p"
+  content_nodes <- html_nodes(webpage_comm, content_selector)
+  description <- html_text(content_nodes, trim = TRUE)
+  description <- paste(description, collapse = "\n")
+  area_data <- tibble(
+    Location = community_area_name,
+    Description = description
+  )
+  community_area_data <- bind_rows(community_area_data, area_data)
+}
+print(community_area_data)
+```
+
+Create tokens using unnest_tokens. Make sure the data is in one-token-per-row format. Remove any stop words within the data.
+
+```{r}
+library(tidytext)
+library(dplyr)
+
+# Ensure the 'Description' column is of character type
+community_area_data <- community_area_data %>%
+  mutate(Description = as.character(Description))
+
+# Tokenize the text data
+tokens <- community_area_data %>%
+  unnest_tokens(word, Description)
+
+
+# Remove stop words
+tokens <- tokens %>%
+  anti_join(stop_words)
+
+# Remove punctuation and numbers
+tokens <- tokens %>%
+  filter(!grepl("^[[:punct:][:digit:]]+$", word))
+
+# Perform additional text cleaning and analysis as needed
+# For example, you can perform stemming, lemmatization, or other text analysis tasks.
+
+# Now you have a tidy data frame 'tokens' with cleaned and tokenized text data
+View(tokens)
+```
+
+What are the most common words used overall?
+```{r}
+library(tidytext)
+library(dplyr)
+
+# Tokenize the text data and create a word frequency table
+word_freq <- tokens %>%
+  count(word, sort = TRUE)
+
+# Display the most common words
+head(word_freq, 20)  
 
 ```
-# this isnt fucking working
 
+Plot the most common words within each location.
+```{r}
+library(ggplot2)
 
+# Group the tokenized data by 'Location' and count word frequencies
+word_freq_by_location <- tokens %>%
+  group_by(Location, word) %>%
+  summarize(count = n()) %>%
+  arrange(desc(count))
 
+# Create separate word frequency plots for each location
+location_plots <- word_freq_by_location %>%
+  group_by(Location) %>%
+  top_n(10, count) %>%  # Select the top 10 words for each location
+  ggplot(aes(x = reorder(word, -count), y = count, fill = Location)) +
+  geom_col() +
+  labs(
+    title = "Top 10 Most Common Words by Location",
+    x = "Word",
+    y = "Count"
+  ) +
+  coord_flip() +
+  facet_wrap(~Location, scales = "free_y") +
+  scale_fill_brewer(palette = "Set1")
 
+# Display the word frequency plots
+print(location_plots)
+
+```
+
+What are some of the similarities between the locations? What are some of the differences?
 
 
 
