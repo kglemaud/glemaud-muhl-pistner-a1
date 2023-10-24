@@ -2,7 +2,10 @@
 title: "Assignment 3 Wed"
 author: "Rowan Muhl"
 date: "2023-10-22"
-output: html_document
+output:
+  pdf_document: 
+    latex_engine: xelatex
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -242,7 +245,7 @@ view(pops3)
 Suppose we wanted to take the actual text from the Wikipedia pages instead of just the information in the table. Our goal in this section is to extract the text from the body of the pages, then do some basic text cleaning and analysis.
 First, scrape just the text without any of the information in the margins or headers. For example, for "Grand Boulevard", the text should start with, "Grand Boulevard on the South Side of Chicago, Illinois, is one of the …". Make sure all of the text is in one block by using something like the code below (I called my object description).
 ```{r}
-install.packages("tm")  # for text mining
+#install.packages("tm")  # for text mining
 library(rvest)
 library(tm)
 ```
@@ -350,7 +353,12 @@ print(location_plots)
 
 What are some of the similarities between the locations? What are some of the differences?
 
+All the locations have the words that make up parts of their name ("hyde", "park", "oakland", "kenwood", "grand", and "boulevard") as top results. In Kenwood, "hyde" and "park" are also in the top 10. All 4 locations have "chicago" in their top 10. Hyde Park seems to have far more words overall than the other 3 locations. 
 
+```{r}
+#update.packages(ask = FALSE, checkBuilt = TRUE)
+#tinytex::tlmgr_update()
+```
 
 
 
