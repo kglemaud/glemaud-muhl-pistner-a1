@@ -1,0 +1,257 @@
+---
+title: "homework 4"
+author: "Rowan Muhl"
+date: "2023-11-15"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+1.1 Optimal matching, Mahalanobis distance, matrix multiplication
+```{r}
+# Covariance matrix
+cov_matrix <- matrix(c(10, 0.2, 0.2, 1), 2, 2)
+solve(cov_matrix)
+```
+
+```{r}
+# Covariance matrix
+cov_matrix <- matrix(c(10, 0.2, 0.2, 1), 2, 2)
+
+# Covariates for treated units
+X1 <- c(25, 1)  # Treated unit i=1
+X2 <- c(30, 1)  # Treated unit i=2
+
+# Control units' covariates
+control_units <- matrix(c(30, 1, 40, 1), 2, 2, byrow = TRUE)
+
+# Function to calculate Mahalanobis distance
+mahalanobis_distance <- function(X, Y, cov_matrix) {
+  diff <- X - Y
+  distance <- sqrt(t(diff) %*% solve(cov_matrix) %*% diff)
+  return(distance)
+}
+
+# Calculate Mahalanobis distances for each treated unit with all control units
+distances1 <- apply(control_units, 2, function(j) mahalanobis_distance(X1, j, cov_matrix))
+distances2 <- apply(control_units, 2, function(j) mahalanobis_distance(X2, j, cov_matrix))
+
+# Find the matched control unit for each treated unit
+matched_control1 <- which.min(distances1)
+matched_control2 <- which.min(distances2)
+
+# Create the table
+table_data <- data.frame(
+  "Matching pairs" = 1:2,
+  "Treated i" = c("i=1", "i=2"),
+  "Control j(i)" = c(matched_control1, matched_control2)
+)
+
+print(table_data)
+
+```
+To fill in the empty column, the first box is 2 and the second box is 2.
+
+
+1.2 Estimate ACE using the matched pair
+```{r}
+# Covariates for treated units
+X1 <- c(25, 1)  # Treated unit i=1
+X2 <- c(30, 1)  # Treated unit i=2
+
+# Control units' covariates
+control_units <- matrix(c(30, 1, 40, 1), 2, 2, byrow = TRUE)
+
+# Income for treated units
+Income_treated <- c(15, 22)
+
+# Income for matched control units (based on the previous matching)
+Income_control <- c(10, 15)
+
+# Calculate the Average Treatment Effect (ATE)
+ACE <- mean(Income_treated - Income_control)
+
+# Print the ATE
+print(paste("Average Causal Effect (ACE):", ACE))
+
+```
+It's 6
+
+1.3 Propensity score weights
+```{r}
+# Given data
+e_x <- c(0.25, 4, 0.33, 0.5)
+Income <- c(15, 22, 10, 15)
+
+# Initialize vectors for PS weight and Income * weight
+PS_weight <- rep(NA, length(e_x))
+Income_weighted <- rep(NA, length(e_x))
+
+# Calculate PS weight and Income * weight
+for (i in 1:length(e_x)) {
+  if (i <= 2) {
+    PS_weight[i] <- 1 / e_x[i]  # Treated units
+  } else {
+    PS_weight[i] <- 1 / (1 - e_x[i])  # Control units
+  }
+  
+  Income_weighted[i] <- Income[i] * PS_weight[i]
+}
+
+# Create the table
+table_data <- data.frame(
+  "Treated i" = c("i=1", "i=2", "Control j=1", "Control j=2"),
+  "e(x)" = e_x,
+  "Income (=$10k)" = Income,
+  "PS weight (w)" = PS_weight,
+  "Income*w" = Income_weighted
+)
+
+print(table_data)
+
+```
+The values for the propensity score weights are 4, 0.25, 1.49, and 2.
+The values for Income*w  are 60, 5.5, 14.93, and 30.
+
+1.4 Average causal effect using the measure of risk difference (RD)
+```{r}
+# Given data
+Income <- c(15, 22, 10, 15)
+PS_weight <- c(1/0.25, 1/4, 1/0.33, 1/0.5)  # Assuming inverse of e(x) as PS weights
+
+# Calculate Risk Difference
+RD <- sum((Income[1:2] - Income[3:4]) * PS_weight[1:2]) / length(Income)
+
+print(paste("Estimated Risk Difference (RD):", RD))
+
+```
+RD = 5.4375
+
+2. prove that the weighted mean of untreated units equals the mean of potential outcome
+
+Yi = Ai * Yi1 + (1 - Ai) * Yi0
+
+E[(1 - Ai)wiYi] = E[(1 - Ai)wi(AiYi1 + (1 - Ai)Yi0)]
+
+E[(1 - Ai)wi(AiYi1)] + E[(1 - Ai)wi((1 - Ai)Yi0)]
+
+E[(1 - Ai)wi(AiYi1)] = E[0] = 0
+
+E[(1 - Ai)wi((1 - Ai)Yi0)]
+
+for (Ai = 0), this becomes E[wiYi0]
+
+Which means that the weighted mean of the untreated units equals the mean of the potential outcome under A = 0
+
+E[(1 - Ai)wiYi] = E[wiYi0] = E(Yi0)
+
+
+
+3.a causal RD, RR, and OR by standardization method
+```{r}
+# Given data
+data <- matrix(c(108, 252, 360, 24, 16, 40, 20, 30, 50, 40, 10, 50), nrow = 3, byrow = TRUE)
+colnames(data) <- c("Asub0 = 1", "Asub0 = 0", "Asub0 = 1", "Asub0 = 0")
+rownames(data) <- c("Y = 1", "Y = 0", "Total")
+
+# Calculate probabilities
+P_Y1_A1 <- data["Y = 1", "Asub0 = 1"] / data["Total", "Asub0 = 1"]
+P_Y1_A0 <- data["Y = 1", "Asub0 = 0"] / data["Total", "Asub0 = 0"]
+
+# Causal RD
+RD <- P_Y1_A1 - P_Y1_A0
+
+# Causal RR
+RR <- P_Y1_A1 / P_Y1_A0
+
+# Causal OR
+OR <- (P_Y1_A1 / (1 - P_Y1_A1)) / (P_Y1_A0 / (1 - P_Y1_A0))
+
+# Print the results
+print(paste("Causal RD:", RD))
+print(paste("Causal RR:", RR))
+print(paste("Causal OR:", OR))
+
+```
+Causal RD = -4.14
+Causal RR = 0.343
+Causal OR = 1.57
+
+3.b create weights and stabalized weights for MSM estimation
+```{r}
+# Given data
+data <- matrix(c(108, 252, 360, 24, 16, 40, 20, 30, 50, 40, 10, 50), nrow = 3, byrow = TRUE)
+colnames(data) <- c("Asub0 = 1", "Asub0 = 0", "Asub0 = 1", "Asub0 = 0")
+rownames(data) <- c("Y = 1", "Y = 0", "Total")
+
+# Calculate probabilities
+P_A1 <- data["Total", "Asub0 = 1"] / sum(data["Total", c("Asub0 = 1", "Asub0 = 0")])
+P_A0_given_L0 <- data["Y = 0", "Asub0 = 0"] / data["Total", "Asub0 = 0"]
+
+# Standard weights
+SW <- 1 / P_A1
+
+# Stabilized weights
+SW_star <- 1 / (P_A1 * P_A0_given_L0)
+
+# Print the results
+print("Standard Weights:")
+print(SW)
+
+print("Stabilized Weights:")
+print(SW_star)
+
+```
+
+
+3.c Esitimate the causal RD, RR, and OR using MSM method with the model Y=A where the outcome Y is specified as a binary variable
+
+```{r}
+#install.packages("survey")
+#install.packages("gee")
+library(gee)
+```
+
+```{r}
+# Given data
+data <- matrix(c(108, 252, 360, 24, 16, 40, 20, 30, 50, 40, 10, 50), nrow = 3, byrow = TRUE)
+colnames(data) <- c("Asub0 = 1", "Asub0 = 0", "Asub0 = 1", "Asub0 = 0")
+rownames(data) <- c("Y = 1", "Y = 0", "Total")
+
+# Extract the relevant data
+Y_A1 <- c(data["Y = 1", "Asub0 = 1"], data["Y = 0", "Asub0 = 1"])
+Y_A0 <- c(data["Y = 1", "Asub0 = 0"], data["Y = 0", "Asub0 = 0"])
+Total_A1 <- sum(data["Total", "Asub0 = 1"])
+Total_A0 <- sum(data["Total", "Asub0 = 0"])
+
+# Calculate proportions
+prop_Y_A1 <- Y_A1 / Total_A1
+prop_Y_A0 <- Y_A0 / Total_A0
+
+# Calculate risk difference, risk ratio, and odds ratio
+causal_RD <- prop_Y_A1[1] - prop_Y_A0[1]
+causal_RR <- prop_Y_A1[1] / prop_Y_A0[1]
+causal_OR <- (prop_Y_A1[1] / (1 - prop_Y_A1[1])) / (prop_Y_A0[1] / (1 - prop_Y_A0[1]))
+
+# Calculate standard errors
+se_RD <- sqrt((prop_Y_A1[1] * (1 - prop_Y_A1[1]) / Total_A1) + (prop_Y_A0[1] * (1 - prop_Y_A0[1]) / Total_A0))
+se_RR <- sqrt((1 / (prop_Y_A0[1] * Total_A0)) + (1 / (prop_Y_A1[1] * Total_A1)))
+se_OR <- sqrt((1 / (prop_Y_A0[1] * (1 - prop_Y_A0[1]))) + (1 / (prop_Y_A1[1] * (1 - prop_Y_A1[1]))))
+
+# Calculate confidence intervals
+ci_RD <- c(causal_RD - 1.96 * se_RD, causal_RD + 1.96 * se_RD)
+ci_RR <- c(causal_RR * exp(-1.96 * se_RR), causal_RR * exp(1.96 * se_RR))
+ci_OR <- c(causal_OR * exp(-1.96 * se_OR), causal_OR * exp(1.96 * se_OR))
+
+# Print the results
+print(paste("Causal RD:", causal_RD, " (", ci_RD[1], ", ", ci_RD[2], ")"))
+print(paste("Causal RR:", causal_RR, " (", ci_RR[1], ", ", ci_RR[2], ")"))
+print(paste("Causal OR:", causal_OR, " (", ci_OR[1], ", ", ci_OR[2], ")"))
+
+```
+Causal RD = -4.14
+Causal RR = 0.343
+Causal OR = 1.57
